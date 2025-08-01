@@ -44,6 +44,7 @@ export interface BlockComponentProps {
   onUpdate: (data: BlockData) => void;
   onDelete: () => void;
   onSelect: () => void;
+  onCreateBlock?: (type: string, index: number, data?: BlockData) => void;
 }
 
 export interface ToolbarProps {
@@ -51,4 +52,22 @@ export interface ToolbarProps {
   onAddBlock: (type: string) => void;
   onDeleteBlock: () => void;
   onMoveBlock: (direction: 'up' | 'down') => void;
+}
+
+// 슬래시 명령어 관련 타입
+export interface SlashCommand {
+  id: string;
+  type: string;
+  name: string;
+  description: string;
+  icon: string;
+  keywords: string[];
+}
+
+export interface SlashCommandState {
+  isVisible: boolean;
+  searchTerm: string;
+  selectedIndex: number;
+  commands: SlashCommand[];
+  position: { x: number; y: number } | null;
 } 

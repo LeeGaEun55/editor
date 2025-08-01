@@ -40,8 +40,14 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({
   const handleCreateBlock = (type: string, index: number, data?: any) => {
     if (readOnly) return;
     
+    console.log('새 블록 생성 시작:', { type, index, data });
+    
     // addBlock 함수를 사용하여 새 블록 생성 (초기 데이터 포함)
-    addBlock(type, index, data);
+    const newBlockId = addBlock(type, index, data);
+    
+    console.log('새 블록 생성 완료:', { newBlockId });
+    
+    // addBlock 함수에서 이미 selectedBlockId를 설정하므로 여기서는 호출하지 않음
   };
 
   const handleDeleteBlock = () => {

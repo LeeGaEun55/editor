@@ -39,16 +39,28 @@ export const useEditor = (config: EditorConfig) => {
 
   // 블록 추가
   const addBlock = useCallback((type: string, index?: number, initialData?: BlockData) => {
+    console.log('addBlock 호출:', { type, index, initialData });
+    
     const newBlock: Block = {
       id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type,
       data: initialData || {}
     };
 
+    console.log('새 블록 생성:', newBlock);
+
     setData(prev => {
       const newBlocks = [...prev.blocks];
       const insertIndex = index !== undefined ? index : newBlocks.length;
       newBlocks.splice(insertIndex, 0, newBlock);
+      
+      console.log('블록 배열 업데이트:', { insertIndex, totalBlocks: newBlocks.length });
+      
+      // 데이터 업데이트가 완료된 후 selectedBlockId 설정
+      setTimeout(() => {
+        console.log('selectedBlockId 설정:', newBlock.id);
+        setSelectedBlockId(newBlock.id);
+      }, 0);
       
       return {
         ...prev,
@@ -57,7 +69,7 @@ export const useEditor = (config: EditorConfig) => {
       };
     });
 
-    setSelectedBlockId(newBlock.id);
+    return newBlock.id; // 새 블록 ID 반환
   }, []);
 
   // 블록 업데이트
@@ -130,6 +142,7 @@ export const useEditor = (config: EditorConfig) => {
 
   // 블록 선택
   const selectBlock = useCallback((blockId: string | null) => {
+    console.log('selectBlock 호출:', { blockId, currentSelected: selectedBlockId });
     setSelectedBlockId(blockId);
   }, []);
 

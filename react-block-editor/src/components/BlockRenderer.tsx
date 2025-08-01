@@ -38,21 +38,6 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
     );
   }
 
-  // ParagraphBlock에만 onCreateBlock prop 전달
-  if (block.type === 'paragraph') {
-    return (
-      <ParagraphBlock
-        block={block}
-        index={index}
-        isSelected={isSelected}
-        onUpdate={onUpdate}
-        onDelete={onDelete}
-        onSelect={onSelect}
-        onCreateBlock={onCreateBlock}
-      />
-    );
-  }
-
   return (
     <BlockComponent
       block={block}
@@ -61,6 +46,7 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({
       onUpdate={onUpdate}
       onDelete={onDelete}
       onSelect={onSelect}
+      onCreateBlock={onCreateBlock}
     />
   );
 }; 
