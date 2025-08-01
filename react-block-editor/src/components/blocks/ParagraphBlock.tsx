@@ -1,17 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { BlockComponentProps } from '../../types';
 
-export const ParagraphBlock = React.memo<BlockComponentProps>(({
+interface ParagraphBlockProps extends BlockComponentProps {
+  onCreateBlock?: (type: string, index: number, data?: any) => void;
+}
+
+export const ParagraphBlock = React.memo<ParagraphBlockProps>(({
   block,
+  index,
   isSelected,
   onUpdate,
-  onSelect
+  onSelect,
+  onCreateBlock
 }) => {
   const [text, setText] = useState(block.data.text || '');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setText(block.data.text || '');
   }, [block.data.text]);
+
+  // 자동 높이 조절
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    }
+  }, [text]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
@@ -19,11 +34,34 @@ export const ParagraphBlock = React.memo<BlockComponentProps>(({
     onUpdate({ text: newText });
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => { 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      // 새로운 문단 블록 추가 로직은 상위 컴포넌트에서 처리
+      
+      // 현재 텍스트를 현재 블록에 저장
+      const target = e.currentTarget as HTMLTextAreaElement;
+      const currentText = text.substring(0, target.selectionStart);
+      const remainingText = text.substring(target.selectionStart);
+      
+      // 현재 블록 업데이트
+      onUpdate({ text: currentText });
+      
+      // 새 블록 생성
+      if (onCreateBlock) {
+        onCreateBlock('paragraph', index + 1, { text: remainingText });
+      }
     }
+    
+    // 빈 블록에서 Backspace 입력 시 이전 블록으로 이동
+    if (e.key === 'Backspace' && text === '' && index > 0) {
+      e.preventDefault();
+      // 이전 블록으로 이동하는 로직 (나중에 구현)
+      console.log('이전 블록으로 이동 필요');
+    }
+  };
+
+  const handleFocus = () => {
+    onSelect();
   };
 
   return (
@@ -32,9 +70,11 @@ export const ParagraphBlock = React.memo<BlockComponentProps>(({
       onClick={onSelect}
     >
       <textarea
+        ref={textareaRef}
         value={text}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
         placeholder="문단을 입력하세요..."
         className="w-full min-h-[1.5em] p-2 border-none outline-none resize-none bg-transparent text-gray-900 placeholder-gray-400"
         style={{ 

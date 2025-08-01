@@ -12,12 +12,37 @@ export const useEditor = (config: EditorConfig) => {
   const isReadyRef = useRef(false);
   const lastDataRef = useRef<EditorData | null>(null);
 
+  // 빈 에디터에서 기본 블록 생성
+  const ensureDefaultBlock = useCallback(() => {
+    setData(prev => {
+      if (prev.blocks.length === 0) {
+        const defaultBlock: Block = {
+          id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          type: 'paragraph',
+          data: { text: '' }
+        };
+        
+        return {
+          ...prev,
+          blocks: [defaultBlock],
+          time: Date.now()
+        };
+      }
+      return prev;
+    });
+  }, []);
+
+  // 초기화 시 기본 블록 생성
+  useEffect(() => {
+    ensureDefaultBlock();
+  }, [ensureDefaultBlock]);
+
   // 블록 추가
-  const addBlock = useCallback((type: string, index?: number) => {
+  const addBlock = useCallback((type: string, index?: number, initialData?: BlockData) => {
     const newBlock: Block = {
       id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type,
-      data: {}
+      data: initialData || {}
     };
 
     setData(prev => {
@@ -48,13 +73,33 @@ export const useEditor = (config: EditorConfig) => {
     }));
   }, []);
 
-  // 블록 삭제
+  // 블록 삭제 (마지막 빈 블록은 보호)
   const deleteBlock = useCallback((blockId: string) => {
-    setData(prev => ({
-      ...prev,
-      blocks: prev.blocks.filter(block => block.id !== blockId),
-      time: Date.now()
-    }));
+    setData(prev => {
+      const blockToDelete = prev.blocks.find(block => block.id === blockId);
+      const isLastBlock = prev.blocks.length === 1;
+      const isEmptyBlock = blockToDelete?.data.text === '';
+      
+      // 마지막 빈 블록은 삭제하지 않고 내용만 비움
+      if (isLastBlock && isEmptyBlock) {
+        return {
+          ...prev,
+          blocks: prev.blocks.map(block =>
+            block.id === blockId
+              ? { ...block, data: { ...block.data, text: '' } }
+              : block
+          ),
+          time: Date.now()
+        };
+      }
+      
+      // 일반적인 삭제
+      return {
+        ...prev,
+        blocks: prev.blocks.filter(block => block.id !== blockId),
+        time: Date.now()
+      };
+    });
     
     if (selectedBlockId === blockId) {
       setSelectedBlockId(null);
@@ -116,6 +161,7 @@ export const useEditor = (config: EditorConfig) => {
     deleteBlock,
     moveBlock,
     selectBlock,
-    setData
+    setData,
+    ensureDefaultBlock
   };
 }; 
